@@ -39,7 +39,7 @@ resource "aws_ecs_task_definition" "dbt_task_definition" {
       "logDriver": "awslogs",
       "options": {
         "awslogs-region": "${local.AWS_REGION}",
-        "awslogs-group": "/aws/ecs/quext-data-integration-${var.ENV}-ecs-cluster",
+        "awslogs-group": "/aws/ecs/${var.PROJECT_NAME}-${var.ENV}-ecs-cluster",
         "awslogs-stream-prefix": "ecs/${var.PROJECT_NAME}-${var.ENV}"
       }
     }
