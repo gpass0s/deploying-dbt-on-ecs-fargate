@@ -134,6 +134,27 @@ module "ecs-resources-security-group" {
       ipv6_cidr_blocks = ["::/0"]
     }
   ]
+}
+#end region
+
+module "vpc-endpoint-security-group" {
+  source                     = "./modules/vpc-resources/security-group"
+  PROJECT_NAME               = local.PROJECT_NAME
+  ENV                        = local.ENV
+  RESOURCE_SUFFIX            = "vpc-endpoint"
+  AWS_TAGS                   = var.AWS_TAGS
+  VPC_ID                     = module.base-vpc.id
+  SECURITY_GROUP_DESCRIPTION = "General purpose security group for shared network VPC"
+  EGRESS_RULES = [
+    {
+      description      = "Egress rule for general purpose SG"
+      from_port        = 0
+      to_port          = 0
+      protocol         = "-1"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+  ]
   INGRESS_RULES = [
     {
       description              = "Full ingress for DMS"
@@ -146,17 +167,35 @@ module "ecs-resources-security-group" {
     }
   ]
 }
-#end region
 
 module "vpc-endpoint-ecr" {
-  source          = "./modules/vpc-resources/ecr-vpc-endpoint"
+  source          = "./modules/vpc-resources/vpc-endpoint"
   ENV             = local.ENV
+  SERVICE_NAME    = "com.amazonaws.${local.AWS_REGION}.ecr.api"
+  VPC_ENDPOINT_TYPE = "Interface"
   PROJECT_NAME    = local.PROJECT_NAME
   RESOURCE_SUFFIX = "vpc-endpoint"
   VPC_ID          = module.base-vpc.id
+  PRIVATE_DNS_ENABLED = true
   SUBNET_ID_LIST = [
     module.private_subnet_1a.id
   ]
-  SECURITY_GROUP_LIST = [module.ecs-resources-security-group.id]
+  SECURITY_GROUP_LIST = [module.vpc-endpoint-security-group.id]
+  AWS_TAGS            = var.AWS_TAGS
+}
+
+module "vpc-endpoint-cloudwatch" {
+  source          = "./modules/vpc-resources/vpc-endpoint"
+  ENV             = local.ENV
+  SERVICE_NAME    = "com.amazonaws.${local.AWS_REGION}.logs"
+  VPC_ENDPOINT_TYPE = "Interface"
+  PROJECT_NAME    = local.PROJECT_NAME
+  RESOURCE_SUFFIX = "vpc-endpoint"
+  VPC_ID          = module.base-vpc.id
+  PRIVATE_DNS_ENABLED = true
+  SUBNET_ID_LIST = [
+    module.private_subnet_1a.id
+  ]
+  SECURITY_GROUP_LIST = [module.vpc-endpoint-security-group.id]
   AWS_TAGS            = var.AWS_TAGS
 }
