@@ -18,11 +18,11 @@ module "permissions" {
   AWS_TAGS        = var.AWS_TAGS
   ENV             = var.ENV
   ECS_CLUSTER_ARN = var.DBT_ECS_CLUSTER_ARN
-  ECS_TASK_ARN    = aws_ecs_task_definition.dbt_task_definition.arn
+  ECS_TASK_ARN    = aws_ecs_task_definition.task_definition.arn
 }
 
-resource "aws_ecs_task_definition" "dbt_task_definition" {
-  family                   = "${local.RESOURCE_NAME}-task_definition"
+resource "aws_ecs_task_definition" "task_definition" {
+  family                   = "${local.RESOURCE_NAME}-for-dbt"
   execution_role_arn       = module.permissions.ecs-task-execution-service-role-arn
   task_role_arn            = module.permissions.dbt-fargate-task-role-arn
   cpu                      = 512
