@@ -87,7 +87,6 @@
       name: 'terraform-apply'
       runs-on: ubuntu-latest
       needs:
-        - check-project-updates
         - terraform-plan
       if: needs.check-project-updates.outputs.output1 == 'true'
       env:
@@ -151,6 +150,7 @@
       runs-on: ubuntu-latest
       needs:
         - build-and-push-dbt-to-ecr
+        - check-project-updates
       if: needs.check-project-updates.outputs.output2 == 'true'
       env:
         AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
@@ -173,12 +173,6 @@
           uses: aws-actions/configure-aws-credentials@v1
           with:
             aws-region: ${{env.AWS_DEFAULT_REGION}}
-
-        - name: install dbt deps
-          uses: mwhitaker/dbt-action@v1.3.0
-          with:
-            dbt_command: "dbt deps"
-            dbt_project_folder: "./transformations"
 
         - name: dbt
           uses: mwhitaker/dbt-action@v1.3.0
