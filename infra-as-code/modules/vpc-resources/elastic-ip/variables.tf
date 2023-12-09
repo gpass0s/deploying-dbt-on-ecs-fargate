@@ -18,3 +18,10 @@ variable "AWS_TAGS" {
 EOF
   type        = map(string)
 }
+
+variable "DOMAIN" {
+
+  description = "Indicates if this EIP is for use in VPC"
+  type = string
+  default = "vpc"
+}

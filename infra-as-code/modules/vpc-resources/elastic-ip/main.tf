@@ -5,7 +5,7 @@ locals {
 
 # Elastic-IP (eip) for NAT
 resource "aws_eip" "eip" {
-  vpc = true
+  domain = var.DOMAIN
   tags = merge(var.AWS_TAGS, {
     Name = local.RESOURCE_NAME
   })
