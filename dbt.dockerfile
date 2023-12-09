@@ -18,7 +18,7 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 # Copy source code
-COPY jaflle_shop/ .
+COPY jaffle_shop/ .
 
 
 RUN chmod -R 755 scripts/
