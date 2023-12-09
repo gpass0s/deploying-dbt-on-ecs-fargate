@@ -151,7 +151,6 @@
       runs-on: ubuntu-latest
       needs:
         - build-and-push-dbt-to-ecr
-        - check-project-updates
       if: needs.check-project-updates.outputs.output2 == 'true'
       env:
         AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
