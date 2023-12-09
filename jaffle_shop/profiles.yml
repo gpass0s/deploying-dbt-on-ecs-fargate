@@ -1,0 +1,13 @@
+jaffle_shop:
+  target: dev
+  outputs:
+    snowflake:
+      type: snowflake
+      account: "{{ env_var('SNF_ACCOUNT') }}"
+      user: "{{ env_var('SNF_USER') }}"
+      password: "{{ env_var('SNF_PASSWORD') }}"
+      role: "{{ env_var('SNF_ROLE') }}"
+      warehouse: "{{ env_var('SNF_WAREHOUSE') }}"
+      database: "{{ env_var('SNF_DATABASE') }}"
+      schema: "{{ env_var('SNF_SCHEMA') }}"
+      threads: 8
