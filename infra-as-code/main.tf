@@ -22,12 +22,12 @@ data "aws_secretsmanager_secret" "gpassos-snowflake-dbt" {
   name = "gpassos/${local.ENV}/snowflake/dbt"
 }
 
-module "ecs-resources" {
-  source              = "./modules/ecs"
+module "ecs-task-definition" {
+  source              = "./modules/ecs-task-definition"
   ENV                 = local.ENV
   PROJECT_NAME        = local.PROJECT_NAME
   AWS_TAGS            = local.AWS_TAGS
-  RESOURCE_SUFFIX     = "dbt-task"
+  RESOURCE_SUFFIX     = "task-definition"
   ECR_REPOSITORY_URL  = module.ecr-repository.repository_url
   ECR_IMAGE_NAME      = "dbt-jaffle-shop-latest"
   DBT_ECS_CLUSTER_ARN = module.ecs-cluster-for-dbt.arn
@@ -56,21 +56,21 @@ module "lambda-dbt-ecs-task-trigger" {
   }
   CREATE_ECS_PERMISSIONS = true
   ROLES_TO_ASSUME_ARN = [
-    module.ecs-resources.dbt-fargate-task-role-arn,
-    module.ecs-resources.task-definition-role-arn
+    module.ecs-task-definition.dbt-fargate-task-role-arn,
+    module.ecs-task-definition.task-definition-role-arn
   ]
   ECS_TASK_DEFINITIONS_ARN = [
-    module.ecs-resources.task-definition-arn
+    module.ecs-task-definition.task-definition-arn
   ]
   SECRET_MANAGER_ARN = data.aws_secretsmanager_secret.gpassos-snowflake-dbt.arn
 
   LAMBDA_ENVIRONMENT_VARIABLES = {
     ECS_CLUSTER_NAME         = module.ecs-cluster-for-dbt.cluster_name
-    ECS_TASK_DEFINITION_ARN  = module.ecs-resources.task-definition-arn
+    ECS_TASK_DEFINITION_ARN  = module.ecs-task-definition.task-definition-arn
     ECS_TASK_SUBNET_ID       = module.private_subnet_1a.id
     ECS_SECURITY_GROUP_ID    = module.ecs-resources-security-group.id
     SECRET_MANAGER_NAME      = data.aws_secretsmanager_secret.gpassos-snowflake-dbt.id
-    CONTAINER_NAME          = module.ecs-resources.task-definition-container-name
+    CONTAINER_NAME          = module.ecs-task-definition.task-definition-container-name
     ENVIRONMENT              = local.ENV
   }
   CREATE_INVOKER_TRIGGER = true
