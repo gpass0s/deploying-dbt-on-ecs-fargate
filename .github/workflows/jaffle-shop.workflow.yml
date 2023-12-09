@@ -15,42 +15,9 @@
         - 'infra-as-code/**'
   
   jobs:
-#    retrieve-aws-credentials:
-#      name: 'retrieve-aws-credentials'
-#      runs-on: ubuntu-latest
-#      env:
-#        AWS_DEFAULT_REGION: us-east-1
-#        AWS_DEFAULT_OUTPUT: json
-#      outputs:
-#        output1: ${{env.AWS_ACCESS_KEY_ID}}
-#        output2: ${{env.AWS_SECRET_ACCESS_KEY}}
-#        output3: ${{env.AWS_DEFAULT_REGION}}
-#        output4: ${{env.AWS_DEFAULT_OUTPUT}}
-#        output8: ${{ steps.filter.outputs.infrastructure }}
-#        output9: ${{ steps.filter.outputs.dbt }}
-#      steps:
-#        - name: Set AWS credentials
-#          run: |
-#              echo "AWS_ACCESS_KEY_ID=AWS_ACCESS_KEY_ID" >> "$GITHUB_ENV"
-#              echo "AWS_SECRET_ACCESS_KEY=AWS_SECRET_ACCESS_KEY" >> "$GITHUB_ENV"
-#
-#        - name: Checkout
-#          uses: actions/checkout@v3
-#
-#        - uses: dorny/paths-filter@v2
-#          id: filter
-#          with:
-#            filters: |
-#              infrastructure:
-#                - 'infra-as-code/**'
-#              dbt:
-#                - 'jaffle_shop/**'
-
     terraform-plan:
       name: 'terraform-plan'
       runs-on: ubuntu-latest
-#      needs: environment-validation
-#      if: needs.environment-validation.outputs.output8 == 'true'
       env:
         AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
         AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
@@ -148,8 +115,50 @@
         - name: Build, tag, and push image to Amazon ECR
           env:
             ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-            ECR_REPOSITORY: gpassos-${{ env.ENV }}-images-repository
+            ECR_REPOSITORY: gpassos-jaffle-shop-${{ env.ENV }}-images-repository
             IMAGE_TAG: dbt-jaffle-shop-latest
           run: |
             docker build -f dbt.dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
             docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+    publish-dbt-docs-on-s3:
+      name: 'publish-dbt-docs-on-s3'
+      runs-on: ubuntu-latest
+      needs:
+        - build-and-push-dbt-to-ecr
+      env:
+        AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+        AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+        AWS_DEFAULT_REGION: us-east-1
+        AWS_DEFAULT_OUTPUT: json
+        SNF_ACCOUNT: ${{secrets.SNF_ACCOUNT}}
+        SNF_USER: ${{secrets.SNF_USER}}
+        SNF_PASSWORD: ${{secrets.SNF_PASSWORD}}
+        SNF_ROLE: ${{secrets.SNF_ROLE}}
+        SNF_WAREHOUSE: ${{secrets.SNF_WAREHOUSE}}
+        SNF_DATABASE: ${{secrets.SNF_DATABASE}}
+        SNF_SCHEMA: ${{secrets.SNF_SCHEMA}}
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v1
+          with:
+            aws-region: ${{env.AWS_DEFAULT_REGION}}
+
+        - name: install dbt deps
+          uses: mwhitaker/dbt-action@v1.3.0
+          with:
+            dbt_command: "dbt deps"
+            dbt_project_folder: "./transformations"
+
+        - name: dbt
+          uses: mwhitaker/dbt-action@v1.3.0
+          with:
+            dbt_command: "dbt docs generate"
+            dbt_project_folder: "./transformations"
+
+        - name: Upload documentation to S3
+          run: |
+            aws s3 cp --recursive ./transformations/target s3://gpassos-jaflle-shop-${{ env.ENV }}-dbtdocs/
