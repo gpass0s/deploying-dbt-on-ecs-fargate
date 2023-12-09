@@ -134,6 +134,17 @@ module "ecs-resources-security-group" {
       ipv6_cidr_blocks = ["::/0"]
     }
   ]
+  INGRESS_RULES = [
+    {
+      description              = "Full ingress for DMS"
+      from_port                = 0
+      to_port                  = 0
+      protocol                 = "all"
+      cidr_blocks              = []
+      ipv6_cidr_blocks         = []
+      source_security_group_id = module.ecs-resources-security-group.id
+    }
+  ]
 }
 #end region
 
