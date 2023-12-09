@@ -52,10 +52,11 @@
           continue-on-error: true
   
         - name: Terraform Plan Status
+          if: steps.plan.outcome == 'failure'
           run: |
             echo "PLAN_STATUS=failure" >> "$GITHUB_ENV"
             exit 1
-  
+
         - name: Set Terraform Plan environment variable
           run: echo "PLAN_STATUS=success" >> "$GITHUB_ENV"
 
