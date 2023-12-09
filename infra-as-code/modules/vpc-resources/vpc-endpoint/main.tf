@@ -4,15 +4,15 @@ locals {
 }
 
 
-resource "aws_vpc_endpoint" "ecr" {
+resource "aws_vpc_endpoint" "vpc_endpoint" {
   vpc_id            = var.VPC_ID
-  service_name      = "com.amazonaws.${var.AWS_REGION}.ecr.api"
-  vpc_endpoint_type = "Interface"
+  service_name      = var.SERVICE_NAME
+  vpc_endpoint_type = var.VPC_ENDPOINT_TYPE
   subnet_ids        = var.SUBNET_ID_LIST
   tags = merge(var.AWS_TAGS, {
     Name = local.RESOURCE_NAME
   })
   security_group_ids = var.SECURITY_GROUP_LIST
 
-  private_dns_enabled = true
+  private_dns_enabled = var.PRIVATE_DNS_ENABLED
 }
