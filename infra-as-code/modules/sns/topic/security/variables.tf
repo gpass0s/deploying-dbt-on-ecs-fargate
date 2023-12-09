@@ -1,0 +1,1 @@
+variable "TOPIC_ARN" {}
