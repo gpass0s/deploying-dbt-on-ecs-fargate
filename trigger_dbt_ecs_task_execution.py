@@ -4,18 +4,16 @@ import traceback
 import os
 import re
 import json
-import time
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-_ecs_cluster_name = os.environ['ECS_CLUSTER_NAME']
-_ecs_task_definition_arn = os.environ['ECS_TASK_DEFINITION_ARN']
-_ecs_security_group_id = os.environ["ECS_SECURITY_GROUP_ID"]
-_ecs_task_public_subnet_id = os.environ["ECS_TASK_SUBNET_ID"]
-_secret_manager_name = os.environ["SECRET_MANAGER_NAME"]
-_container_name = os.environ["CONTAINER_NAME"]
-_containers_interval_in_seconds = int(os.environ["CONTAINERS_INTERVAL_IN_SECONDS"])
+ECS_CLUSTER_NAME = os.environ['ECS_CLUSTER_NAME']
+ECS_TASK_DEFINITION_ARN = os.environ['ECS_TASK_DEFINITION_ARN']
+ECS_SECURITY_GROUP_ID = os.environ["ECS_SECURITY_GROUP_ID"]
+ECS_TASK_SUBNET_ID = os.environ["ECS_TASK_SUBNET_ID"]
+SECRET_MANAGER_NAME = os.environ["SECRET_MANAGER_NAME"]
+CONTAINER_NAME = os.environ["CONTAINER_NAME"]
 
 
 def get_snowflake_credentials():
@@ -27,8 +25,8 @@ def get_snowflake_credentials():
     )
 
     credentials = {}
-    logger.info(f"Retrieving credentials from secret {_secret_manager_name}")
-    response = client.get_secret_value(SecretId=_secret_manager_name)
+    logger.info(f"Retrieving credentials from secret {SECRET_MANAGER_NAME}")
+    response = client.get_secret_value(SecretId=SECRET_MANAGER_NAME)
     secret = response["SecretString"]
     credentials.update(json.loads(secret))
 
@@ -36,81 +34,49 @@ def get_snowflake_credentials():
 
 
 def lambda_handler(event, context):
-
     try:
         # Create an ECS client
         ecs_client = boto3.client('ecs')
 
-        # task_definitions_arn = [secret.strip() for secret in _ecs_task_definitions_arn.split(",")]
-        # containers = [secret.strip() for secret in _containers_name.split(",")]
-
         # Extract ecs_task_definition_name from ecs_task_definition_arn using a regular expression
-        match = re.search(r'task-definition/(.+):(\d+)', _ecs_task_definition_arn)
+        match = re.search(r'task-definition/(.+):(\d+)', ECS_TASK_DEFINITION_ARN)
         ecs_task_definition_name = match.group(1) + ':' + match.group(2)
 
-        logger.info(f"Setting container environment variables")
+        logger.info("Setting container environment variables")
         snowflake_credentials = get_snowflake_credentials()
 
         # Set the container overrides
         container_overrides = [
             {
-                'name': _container_name,
+                'name': CONTAINER_NAME,
                 'environment': [
-                    {
-                        'name': 'SNF_ACCOUNT',
-                        'value': snowflake_credentials['account']
-                    },
-                    {
-                        'name': 'SNF_USER',
-                        'value': snowflake_credentials['username']
-                    },
-                    {
-                        'name': 'SNF_PRIVATE_KEY',
-                        'value': snowflake_credentials['private_key']
-                    },
-                    {
-                        'name': 'SNF_ROLE',
-                        'value': snowflake_credentials['role']
-                    },
-                    {
-                        'name': 'SNF_WAREHOUSE',
-                        'value': snowflake_credentials['warehouse']
-                    },
-                    {
-                        'name': 'SNF_DATABASE',
-                        'value': snowflake_credentials['database']
-                    },
-                    {
-                        'name': 'SNF_SCHEMA',
-                        'value': snowflake_credentials['schema']
-                    },
-                    {
-                        'name': 'DBT_ENV',
-                        'value': os.getenv('ENVIRONMENT')
-                    }
+                    {'name': 'SNF_ACCOUNT', 'value': snowflake_credentials['account']},
+                    {'name': 'SNF_USER', 'value': snowflake_credentials['username']},
+                    {'name': 'SNF_PRIVATE_KEY', 'value': snowflake_credentials['private_key']},
+                    {'name': 'SNF_ROLE', 'value': snowflake_credentials['role']},
+                    {'name': 'SNF_WAREHOUSE', 'value': snowflake_credentials['warehouse']},
+                    {'name': 'SNF_DATABASE', 'value': snowflake_credentials['database']},
+                    {'name': 'SNF_SCHEMA', 'value': snowflake_credentials['schema']},
+                    {'name': 'DBT_ENV', 'value': os.getenv('ENVIRONMENT')}
                 ]
             },
         ]
 
-        logger.info(f"Submitting task to ECS")
+        logger.info("Submitting task to ECS")
 
         response = ecs_client.run_task(
             taskDefinition=ecs_task_definition_name,
-            cluster=_ecs_cluster_name,
+            cluster=ECS_CLUSTER_NAME,
             launchType='FARGATE',
-            overrides={
-                'containerOverrides': container_overrides
-            },
+            overrides={'containerOverrides': container_overrides},
             networkConfiguration={
                 'awsvpcConfiguration': {
-                    'subnets': [_ecs_task_public_subnet_id],
-                    'securityGroups': [_ecs_security_group_id],
+                    'subnets': [ECS_TASK_SUBNET_ID],
+                    'securityGroups': [ECS_SECURITY_GROUP_ID],
                     'assignPublicIp': 'ENABLED'
                 }
             }
         )
         logger.info(f"Task successfully submitted to ECS. Task arn: {response['tasks'][0]['taskArn']}")
-        time.sleep(_containers_interval_in_seconds)
     except Exception as error:
         logger.error(traceback.format_exc())
-
