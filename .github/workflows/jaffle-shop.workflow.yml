@@ -102,7 +102,7 @@
         AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
         AWS_REGION: us-east-1
         AWS_DEFAULT_OUTPUT: json
-        ENV: ${{needs.environment-validation.outputs.output5}}
+        ENV: dev
       steps:
         - name: Checkout
           uses: actions/checkout@v3
@@ -137,6 +137,7 @@
         SNF_WAREHOUSE: ${{secrets.SNF_WAREHOUSE}}
         SNF_DATABASE: ${{secrets.SNF_DATABASE}}
         SNF_SCHEMA: ${{secrets.SNF_SCHEMA}}
+        ENV: dev
       steps:
         - name: Checkout
           uses: actions/checkout@v3
