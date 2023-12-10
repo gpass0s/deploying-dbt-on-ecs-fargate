@@ -1,185 +1,185 @@
-  name: "Bulding and Updating dbt image on ECR"
-  
-  "on":
-    push:
-      branches:
-        - main
-      paths:
-        - 'jaffle_shop/**'
-        - 'infra-as-code/**'
-    pull_request:
-      branches:
-        - main
-      paths:
-        - 'jaffle_shop/**'
-        - 'infra-as-code/**'
-  
-  jobs:
+name: "Build and Update dbt Image on ECR"
 
-    check-project-updates:
-      name: check-project-updates
-      runs-on: ubuntu-latest
-      outputs:
-        output1: ${{ steps.filter.outputs.infrastructure }}
-        output2: ${{ steps.filter.outputs.dbt-project }}
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v3
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'jaffle_shop/**'
+      - 'infra-as-code/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'jaffle_shop/**'
+      - 'infra-as-code/**'
 
-        - uses: dorny/paths-filter@v2
-          id: filter
-          with:
-            filters: |
-              infrastructure:
-                - 'infra-as-code/**'
-              dbt-project:
-                - 'jaffle_shop/**'
-            
+jobs:
 
-    terraform-plan:
-      name: 'terraform-plan'
-      runs-on: ubuntu-latest
-      needs: check-project-updates
-      if: needs.check-project-updates.outputs.output1 == 'true'
-      env:
-        AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
-        AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
-        AWS_DEFAULT_REGION: us-east-1
-        AWS_DEFAULT_OUTPUT: json
-        ENV: dev
-      outputs:
-        output1: ${{env.PLAN_STATUS}}
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v3
-  
-        - name: Configure AWS credentials
-          uses: aws-actions/configure-aws-credentials@v1
-          with:
-            aws-region: ${{env.AWS_DEFAULT_REGION}}
-  
-        - name: Terraform Init
-          id: init
-          run: cd infra-as-code && terraform init --backend-config="bucket=gpassos-terraform-state-files"
-  
-        - name: Terraform Validate
-          id: validate
-          run: |
-            cd infra-as-code 
-            terraform validate -no-color
-            terraform workspace select $ENV || terraform workspace new $ENV
-  
-        - name: Terraform Plan
-          id: plan
-          run: cd infra-as-code && terraform plan -out plan.tfplan
-          continue-on-error: true
-  
-        - name: Terraform Plan Status
-          if: steps.plan.outcome == 'failure'
-          run: |
-            echo "PLAN_STATUS=failure" >> "$GITHUB_ENV"
-            exit 1
+  check-project-updates:
+    name: Check Project Updates
+    runs-on: ubuntu-latest
+    outputs:
+      infrastructure: ${{ steps.filter.outputs.infrastructure }}
+      dbt-project: ${{ steps.filter.outputs.dbt-project }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-        - name: Set Terraform Plan environment variable
-          run: echo "PLAN_STATUS=success" >> "$GITHUB_ENV"
+      - name: Filter Paths
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            infrastructure:
+              - 'infra-as-code/**'
+            dbt-project:
+              - 'jaffle_shop/**'
 
-    terraform-apply:
-      name: 'terraform-apply'
-      runs-on: ubuntu-latest
-      needs:
-        - terraform-plan
-      if: needs.check-project-updates.outputs.output1 == 'true'
-      env:
-        AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
-        AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
-        AWS_DEFAULT_REGION: us-east-1
-        AWS_DEFAULT_OUTPUT: json
-        PLAN_STATUS: ${{needs.terraform-plan.outputs.output1}}
-        ENV: dev
-      steps:
-        - name: Check plan status
-          if: env.PLAN_STATUS != 'success'
-          run: |
-            echo "The given terraform plan is not valid"
-            exit 1
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    needs: check-project-updates
+    if: needs.check-project-updates.outputs.infrastructure == 'true'
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_DEFAULT_OUTPUT: json
+      ENV: dev
+    outputs:
+      plan-status: ${{ env.PLAN_STATUS }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-        - name: Checkout
-          uses: actions/checkout@v3
-  
-        - name: Terraform Init
-          id: init
-          run: cd infra-as-code && terraform init --backend-config="bucket=gpassos-terraform-state-files"
-  
-        - name: Terraform Apply
-          run: |
-            cd infra-as-code
-            terraform workspace select $ENV
-            terraform plan
-            terraform apply -auto-approve -input=false
-  
-    build-and-push-dbt-to-ecr:
-      name: 'build-and-push-dbt-to-ecr'
-      runs-on: ubuntu-latest
-      needs: check-project-updates
-      if: needs.check-project-updates.outputs.output2 == 'true'
-      env:
-        AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
-        AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
-        AWS_REGION: us-east-1
-        AWS_DEFAULT_OUTPUT: json
-        ENV: dev
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
-        - name: Login to Amazon ECR
-          id: login-ecr
-          uses: aws-actions/amazon-ecr-login@v1
-  
-        - name: Build, tag, and push image to Amazon ECR
-          env:
-            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-            ECR_REPOSITORY: gpassos-jaffle-shop-${{ env.ENV }}-images-repository
-            IMAGE_TAG: dbt-jaffle-shop-latest
-          run: |
-            docker build -f dbt.dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      - name: Initialize Terraform
+        id: init
+        run: cd infra-as-code && terraform init --backend-config="bucket=gpassos-terraform-state-files"
 
-    publish-dbt-docs-on-s3:
-      name: 'publish-dbt-docs-on-s3'
-      runs-on: ubuntu-latest
-      needs:
-        - build-and-push-dbt-to-ecr
-        - check-project-updates
-      if: needs.check-project-updates.outputs.output2 == 'true'
-      env:
-        AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
-        AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
-        AWS_DEFAULT_REGION: us-east-1
-        AWS_DEFAULT_OUTPUT: json
-        SNF_ACCOUNT: ${{secrets.SNF_ACCOUNT}}
-        SNF_USER: ${{secrets.SNF_USER}}
-        SNF_PASSWORD: ${{secrets.SNF_PASSWORD}}
-        SNF_ROLE: ${{secrets.SNF_ROLE}}
-        SNF_WAREHOUSE: ${{secrets.SNF_WAREHOUSE}}
-        SNF_DATABASE: ${{secrets.SNF_DATABASE}}
-        SNF_SCHEMA: ${{secrets.SNF_SCHEMA}}
-        ENV: dev
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v3
+      - name: Validate Terraform
+        id: validate
+        run: |
+          cd infra-as-code 
+          terraform validate -no-color
+          terraform workspace select $ENV || terraform workspace new $ENV
 
-        - name: Configure AWS credentials
-          uses: aws-actions/configure-aws-credentials@v1
-          with:
-            aws-region: ${{env.AWS_DEFAULT_REGION}}
+      - name: Terraform Plan
+        id: plan
+        run: cd infra-as-code && terraform plan -out plan.tfplan
+        continue-on-error: true
 
-        - name: dbt
-          uses: mwhitaker/dbt-action@v1.3.0
-          with:
-            dbt_command: "dbt docs generate"
-            dbt_project_folder: "./transformations"
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: |
+          echo "PLAN_STATUS=failure" >> "$GITHUB_ENV"
+          exit 1
 
-        - name: Upload documentation to S3
-          run: |
-            aws s3 cp --recursive ./transformations/target s3://gpassos-jaflle-shop-${{ env.ENV }}-dbtdocs/
+      - name: Set Terraform Plan Status
+        run: echo "PLAN_STATUS=success" >> "$GITHUB_ENV"
+
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs:
+      - terraform-plan
+    if: needs.check-project-updates.outputs.infrastructure == 'true' && needs.terraform-plan.outputs.plan-status == 'success'
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_DEFAULT_OUTPUT: json
+      PLAN_STATUS: ${{ needs.terraform-plan.outputs.plan-status }}
+      ENV: dev
+    steps:
+      - name: Check Terraform Plan Status
+        if: env.PLAN_STATUS != 'success'
+        run: |
+          echo "The given Terraform plan is not valid"
+          exit 1
+
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Initialize Terraform
+        id: init
+        run: cd infra-as-code && terraform init --backend-config="bucket=gpassos-terraform-state-files"
+
+      - name: Terraform Apply
+        run: |
+          cd infra-as-code
+          terraform workspace select $ENV
+          terraform plan
+          terraform apply -auto-approve -input=false
+
+  build-and-push-dbt-to-ecr:
+    name: Build and Push dbt to ECR
+    runs-on: ubuntu-latest
+    needs: check-project-updates
+    if: needs.check-project-updates.outputs.dbt-project == 'true'
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: us-east-1
+      AWS_DEFAULT_OUTPUT: json
+      ENV: dev
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, Tag, and Push Image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: gpassos-jaffle-shop-${{ env.ENV }}-images-repository
+          IMAGE_TAG: dbt-jaffle-shop-latest
+        run: |
+          docker build -f dbt.dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+  publish-dbt-docs-on-s3:
+    name: Publish dbt Docs on S3
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-push-dbt-to-ecr
+      - check-project-updates
+    if: needs.check-project-updates.outputs.dbt-project == 'true'
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_DEFAULT_OUTPUT: json
+      SNF_ACCOUNT: ${{ secrets.SNF_ACCOUNT }}
+      SNF_USER: ${{ secrets.SNF_USER }}
+      SNF_PASSWORD: ${{ secrets.SNF_PASSWORD }}
+      SNF_ROLE: ${{ secrets.SNF_ROLE }}
+      SNF_WAREHOUSE: ${{ secrets.SNF_WAREHOUSE }}
+      SNF_DATABASE: ${{ secrets.SNF_DATABASE }}
+      SNF_SCHEMA: ${{ secrets.SNF_SCHEMA }}
+      ENV: dev
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Generate dbt Documentation
+        uses: mwhitaker/dbt-action@v1.3.0
+        with:
+          dbt_command: "dbt docs generate"
+          dbt_project_folder: "./transformations"
+
+      - name: Upload Documentation to S3
+        run: |
+          aws s3 cp --recursive ./transformations/target s3://gpassos-jaflle-shop-${{ env.ENV }}-dbtdocs/
