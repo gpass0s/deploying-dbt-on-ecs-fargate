@@ -169,13 +169,13 @@ module "vpc-endpoint-security-group" {
 }
 
 module "vpc-endpoint-ecr" {
-  source          = "./modules/vpc-resources/vpc-endpoint"
-  ENV             = local.ENV
-  SERVICE_NAME    = "com.amazonaws.${local.AWS_REGION}.ecr.api"
-  VPC_ENDPOINT_TYPE = "Interface"
-  PROJECT_NAME    = local.PROJECT_NAME
-  RESOURCE_SUFFIX = "vpc-endpoint"
-  VPC_ID          = module.base-vpc.id
+  source              = "./modules/vpc-resources/vpc-endpoint"
+  ENV                 = local.ENV
+  SERVICE_NAME        = "com.amazonaws.${local.AWS_REGION}.ecr.api"
+  VPC_ENDPOINT_TYPE   = "Interface"
+  PROJECT_NAME        = local.PROJECT_NAME
+  RESOURCE_SUFFIX     = "vpc-endpoint"
+  VPC_ID              = module.base-vpc.id
   PRIVATE_DNS_ENABLED = true
   SUBNET_ID_LIST = [
     module.private_subnet_1a.id
@@ -185,13 +185,13 @@ module "vpc-endpoint-ecr" {
 }
 
 module "vpc-endpoint-cloudwatch" {
-  source          = "./modules/vpc-resources/vpc-endpoint"
-  ENV             = local.ENV
-  SERVICE_NAME    = "com.amazonaws.${local.AWS_REGION}.logs"
-  VPC_ENDPOINT_TYPE = "Interface"
-  PROJECT_NAME    = local.PROJECT_NAME
-  RESOURCE_SUFFIX = "vpc-endpoint"
-  VPC_ID          = module.base-vpc.id
+  source              = "./modules/vpc-resources/vpc-endpoint"
+  ENV                 = local.ENV
+  SERVICE_NAME        = "com.amazonaws.${local.AWS_REGION}.logs"
+  VPC_ENDPOINT_TYPE   = "Interface"
+  PROJECT_NAME        = local.PROJECT_NAME
+  RESOURCE_SUFFIX     = "vpc-endpoint"
+  VPC_ID              = module.base-vpc.id
   PRIVATE_DNS_ENABLED = true
   SUBNET_ID_LIST = [
     module.private_subnet_1a.id

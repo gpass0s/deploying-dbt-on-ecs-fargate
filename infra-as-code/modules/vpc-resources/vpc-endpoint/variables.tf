@@ -38,17 +38,17 @@ EOF
 
 variable "SERVICE_NAME" {
   description = "The service name"
-  type = string
+  type        = string
 }
 
 variable "VPC_ENDPOINT_TYPE" {
   description = "The VPC endpoint type, Gateway, GatewayLoadBalancer, or Interface"
-  type = string
-  default =  "Interface"
+  type        = string
+  default     = "Interface"
 }
 
 variable "PRIVATE_DNS_ENABLED" {
   description = "Whether or not to associate a private hosted zone with the specified VPC"
-  default = false
-  type = bool
+  default     = false
+  type        = bool
 }

@@ -22,6 +22,6 @@ EOF
 variable "DOMAIN" {
 
   description = "Indicates if this EIP is for use in VPC"
-  type = string
-  default = "vpc"
+  type        = string
+  default     = "vpc"
 }

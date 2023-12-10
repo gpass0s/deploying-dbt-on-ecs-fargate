@@ -65,13 +65,13 @@ module "lambda-dbt-ecs-task-trigger" {
   SECRET_MANAGER_ARN = data.aws_secretsmanager_secret.gpassos-snowflake-dbt.arn
 
   LAMBDA_ENVIRONMENT_VARIABLES = {
-    ECS_CLUSTER_NAME         = module.ecs-cluster-for-dbt.cluster_name
-    ECS_TASK_DEFINITION_ARN  = module.ecs-task-definition.task-definition-arn
-    ECS_TASK_SUBNET_ID       = module.private_subnet_1a.id
-    ECS_SECURITY_GROUP_ID    = module.ecs-resources-security-group.id
-    SECRET_MANAGER_NAME      = data.aws_secretsmanager_secret.gpassos-snowflake-dbt.id
+    ECS_CLUSTER_NAME        = module.ecs-cluster-for-dbt.cluster_name
+    ECS_TASK_DEFINITION_ARN = module.ecs-task-definition.task-definition-arn
+    ECS_TASK_SUBNET_ID      = module.private_subnet_1a.id
+    ECS_SECURITY_GROUP_ID   = module.ecs-resources-security-group.id
+    SECRET_MANAGER_NAME     = data.aws_secretsmanager_secret.gpassos-snowflake-dbt.id
     CONTAINER_NAME          = module.ecs-task-definition.task-definition-container-name
-    ENVIRONMENT              = local.ENV
+    ENVIRONMENT             = local.ENV
   }
   CREATE_INVOKER_TRIGGER = true
   LAMBDA_EXECUTION_FREQUENCY = {
