@@ -52,7 +52,7 @@ module "lambda-dbt-ecs-task-trigger" {
     "runtime"            = "python3.8"
     "timeout"            = 300
     "memory_size"        = 128
-    "lambda_script_path" = "../trigger_dbt_ecs_task_execution.py"
+    "lambda_script_path" = "../dbt_task_execution_trigger_script.py"
   }
   CREATE_ECS_PERMISSIONS = true
   ROLES_TO_ASSUME_ARN = [
