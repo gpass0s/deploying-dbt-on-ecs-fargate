@@ -27,7 +27,7 @@ module "ecs-task-definition" {
   ENV                 = local.ENV
   PROJECT_NAME        = local.PROJECT_NAME
   AWS_TAGS            = local.AWS_TAGS
-  RESOURCE_SUFFIX     = "task-definition"
+  RESOURCE_SUFFIX     = "task-definition-for-dbt"
   ECR_REPOSITORY_URL  = module.ecr-repository.repository_url
   ECR_IMAGE_NAME      = "dbt-jaffle-shop-latest"
   DBT_ECS_CLUSTER_ARN = module.ecs-cluster-for-dbt.arn
