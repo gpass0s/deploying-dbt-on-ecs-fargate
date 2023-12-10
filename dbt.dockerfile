@@ -21,8 +21,8 @@ RUN pip install -r requirements.txt
 COPY jaffle_shop/ .
 
 
-RUN chmod -R 755 dbt_container_init_commands.sh
+RUN chmod -R 755 scripts/
 
 # we run everything through sh, so we can execute all we'd like
 ENTRYPOINT [ "/bin/sh", "-c" ]
-CMD ["dbt_container_init_commands.sh"]
+CMD ["scripts/dbt_container_init_commands.sh"]
