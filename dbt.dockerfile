@@ -25,4 +25,4 @@ RUN chmod -R 755 scripts/
 
 # we run everything through sh, so we can execute all we'd like
 ENTRYPOINT [ "/bin/sh", "-c" ]
-CMD ["scripts/run_dbt.sh"]
+CMD ["dbt_container_init_commands.sh.sh"]
