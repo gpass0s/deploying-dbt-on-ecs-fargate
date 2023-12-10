@@ -3,11 +3,11 @@ locals {
 }
 
 module "permissions" {
-  source                        = "./permissions"
-  RESOURCE_NAME                 = local.RESOURCE_NAME
-  ECS_TASK_DEFINITIONS_ARN      = var.ECS_TASK_DEFINITIONS_ARN
-  ROLES_TO_ASSUME_ARN           = var.ROLES_TO_ASSUME_ARN
-  SECRET_MANAGER_ARN            = var.SECRET_MANAGER_ARN
+  source                   = "./permissions"
+  RESOURCE_NAME            = local.RESOURCE_NAME
+  ECS_TASK_DEFINITIONS_ARN = var.ECS_TASK_DEFINITIONS_ARN
+  ROLES_TO_ASSUME_ARN      = var.ROLES_TO_ASSUME_ARN
+  SECRET_MANAGER_ARN       = var.SECRET_MANAGER_ARN
 }
 
 
