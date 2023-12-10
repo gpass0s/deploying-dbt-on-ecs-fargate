@@ -14,7 +14,7 @@ module "logging" {
 
 module "permissions" {
   source          = "./permissions"
-  RESOURCE_PREFIX = local.RESOURCE_NAME
+  PROJECT_NAME    = var.PROJECT_NAME
   AWS_TAGS        = var.AWS_TAGS
   ENV             = var.ENV
   ECS_CLUSTER_ARN = var.DBT_ECS_CLUSTER_ARN
@@ -22,7 +22,7 @@ module "permissions" {
 }
 
 resource "aws_ecs_task_definition" "task_definition" {
-  family                   = "${local.RESOURCE_NAME}-for-dbt"
+  family                   = local.RESOURCE_NAME
   execution_role_arn       = module.permissions.ecs-task-execution-service-role-arn
   task_role_arn            = module.permissions.dbt-fargate-task-role-arn
   cpu                      = 512
@@ -39,7 +39,7 @@ resource "aws_ecs_task_definition" "task_definition" {
       "logDriver": "awslogs",
       "options": {
         "awslogs-region": "${local.AWS_REGION}",
-        "awslogs-group": "/aws/ecs/${var.PROJECT_NAME}-${var.ENV}-ecs-cluster",
+        "awslogs-group": "/aws/ecs/${local.RESOURCE_NAME}",
         "awslogs-stream-prefix": "ecs/${var.PROJECT_NAME}-${var.ENV}"
       }
     }
