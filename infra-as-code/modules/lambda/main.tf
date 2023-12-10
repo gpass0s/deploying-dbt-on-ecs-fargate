@@ -46,19 +46,6 @@ module "observability" {
   }
 }
 
-module "event_source" {
-  source = "./event-source"
-  SETTINGS = {
-    "event_source_arn"                   = var.LAMBDA_EVENT_SOURCE["event_source_arn"]
-    "trigger"                            = var.LAMBDA_EVENT_SOURCE["trigger"]
-    "starting_position"                  = var.LAMBDA_EVENT_SOURCE["starting_position"]
-    "batch_size"                         = var.LAMBDA_EVENT_SOURCE["batch_size"]
-    "maximum_batching_window_in_seconds" = var.LAMBDA_EVENT_SOURCE["maximum_batching_window_in_seconds"]
-    "maximum_retry_attempts"             = var.LAMBDA_EVENT_SOURCE["maximum_retry_attempts"]
-    "lambda_arn"                         = aws_lambda_function.lambda.arn
-  }
-}
-
 module "invoker" {
   source = "./invoker"
   INVOKER_TRIGGER_PARAMETERS = {

@@ -11,18 +11,6 @@ variable "LAMBDA_SETTINGS" {
   type = any
 }
 
-variable "LAMBDA_EVENT_SOURCE" {
-  type = any
-  default = {
-    "event_source_arn"                   = ""
-    "trigger"                            = ""
-    "starting_position"                  = "LATEST"
-    "batch_size"                         = 1
-    "maximum_batching_window_in_seconds" = 30
-    "maximum_retry_attempts"             = 10
-  }
-}
-
 variable "LAMBDA_ENVIRONMENT_VARIABLES" {
   type = map(string)
 }
