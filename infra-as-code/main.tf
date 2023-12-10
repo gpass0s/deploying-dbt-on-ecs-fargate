@@ -48,13 +48,12 @@ module "lambda-dbt-ecs-task-trigger" {
   RESOURCE_SUFFIX = "dbt-task-trigger"
   LAMBDA_SETTINGS = {
     "description"        = "This function starts a ECS task on fargate that runs dbt"
-    "handler"            = "trigger_dbt_ecs_task_execution.lambda_handler"
+    "handler"            = "dbt_task_execution_trigger_script.lambda_handler"
     "runtime"            = "python3.8"
     "timeout"            = 300
     "memory_size"        = 128
     "lambda_script_path" = "../dbt_task_execution_trigger_script.py"
   }
-  CREATE_ECS_PERMISSIONS = true
   ROLES_TO_ASSUME_ARN = [
     module.ecs-task-definition.dbt-fargate-task-role-arn,
     module.ecs-task-definition.task-definition-role-arn
