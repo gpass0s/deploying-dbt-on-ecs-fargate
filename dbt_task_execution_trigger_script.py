@@ -17,7 +17,7 @@ CONTAINER_NAME = os.environ["CONTAINER_NAME"]
 
 
 def get_snowflake_credentials():
-    # Retrieve snowflake credentials from SSM parameter store
+    # Retrieve snowflake credentials from AWS secret manager
     session = boto3.session.Session()
     client = session.client(
         service_name="secretsmanager",
