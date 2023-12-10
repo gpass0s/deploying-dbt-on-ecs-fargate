@@ -75,19 +75,19 @@ module "lambda-dbt-ecs-task-trigger" {
   CREATE_INVOKER_TRIGGER = true
   LAMBDA_EXECUTION_FREQUENCY = {
     dev = {
-      rate  = "99999999"
+      rate  = "5"
       unity = "minutes"
     }
     qa = {
-      rate  = "99999999"
+      rate  = "5"
       unity = "minutes"
     }
     stg = {
-      rate  = "99999999"
+      rate  = "5"
       unity = "minutes"
     }
     prd = {
-      rate  = "99999999"
+      rate  = "5"
       unity = "minutes"
     }
   }
