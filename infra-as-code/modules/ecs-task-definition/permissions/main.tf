@@ -7,7 +7,7 @@ locals {
 }
 
 resource "aws_iam_role" "iam_ecs_service_role" {
-  name = "${var.RESOURCE_PREFIX}-role"
+  name = "${var.PROJECT_NAME}-${var.ENV}-EcsServiceRole"
   tags = var.AWS_TAGS
 
   assume_role_policy = <<EOF
@@ -27,7 +27,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "iam_ecs_service_police" {
-  name = "${var.RESOURCE_PREFIX}-profile-policy"
+  name = "${var.PROJECT_NAME}-${var.ENV}-EcsServicePolicy"
   role = aws_iam_role.iam_ecs_service_role.id
 
   policy = <<EOF
@@ -58,7 +58,7 @@ EOF
 }
 
 resource "aws_iam_role" "iam_ecs_task_execution_service_role" {
-  name = "${var.RESOURCE_PREFIX}-task-execution-role"
+  name = "${var.PROJECT_NAME}-${var.ENV}-EcsTaskExecutionRole"
   tags = var.AWS_TAGS
 
   assume_role_policy = <<EOF
@@ -80,7 +80,7 @@ EOF
 
 resource "aws_iam_role_policy" "iam_ecs_task_execution_service_police" {
 
-  name   = "${var.RESOURCE_PREFIX}-task-execution-profile-policy"
+  name   = "${var.PROJECT_NAME}-${var.ENV}-EcsTaskExecutionPolicy"
   role   = aws_iam_role.iam_ecs_task_execution_service_role.id
   policy = <<EOF
 {
@@ -114,7 +114,7 @@ EOF
 
 
 resource "aws_iam_role" "dbt-fargate-task-role" {
-  name = "${var.RESOURCE_PREFIX}-dbt-fargate-task-role"
+  name = "${var.PROJECT_NAME}-${var.ENV}-DbtTaskRole"
 
   assume_role_policy = <<EOF
 {
@@ -135,7 +135,7 @@ EOF
 
 resource "aws_iam_role_policy" "dbt-fargate-task-policy" {
 
-  name = "${var.RESOURCE_PREFIX}-dbt-fargate-task-policy"
+  name = "${var.PROJECT_NAME}-${var.ENV}-DbtTaskpolicy"
   role = aws_iam_role.dbt-fargate-task-role.id
 
   policy = <<EOF

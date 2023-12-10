@@ -1,4 +1,4 @@
-variable "RESOURCE_PREFIX" {}
+variable "PROJECT_NAME" {}
 
 variable "AWS_TAGS" {}
 
