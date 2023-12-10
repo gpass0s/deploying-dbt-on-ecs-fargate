@@ -53,6 +53,7 @@ def lambda_handler(event, context):
                     {'name': 'SNF_ACCOUNT', 'value': snowflake_credentials['account']},
                     {'name': 'SNF_USER', 'value': snowflake_credentials['user']},
                     {'name': 'SNF_ROLE', 'value': snowflake_credentials['role']},
+                    {'name': 'SNF_PASSWORD', 'value': snowflake_credentials['password']},
                     {'name': 'SNF_WAREHOUSE', 'value': snowflake_credentials['warehouse']},
                     {'name': 'SNF_DATABASE', 'value': snowflake_credentials['database']},
                     {'name': 'SNF_SCHEMA', 'value': snowflake_credentials['schema']},
