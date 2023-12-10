@@ -1,8 +1,3 @@
-output "ecs-cluster-role-arn" {
-  value       = aws_iam_role.iam_ecs_service_role.arn
-  description = "ARN for ECS"
-}
-
 output "ecs-task-execution-service-role-arn" {
   value       = aws_iam_role.iam_ecs_task_execution_service_role.arn
   description = "ARN for ECS Task Execution"

@@ -1,8 +1,4 @@
 
-output "cluster-role-arn" {
-  value = module.permissions.ecs-cluster-role-arn
-}
-
 output "task-definition-arn" {
   value = aws_ecs_task_definition.task_definition.arn
 }
