@@ -12,10 +12,5 @@ variable "ROLES_TO_ASSUME_ARN" {
   type = list(string)
 }
 
-variable "CREATE_ECS_PERMISSIONS" {}
-
-variable "CREATE_EC2_PERMISSIONS" {}
-
-variable "CREATE_EKS_LAMBDA_PERMISSIONS" {}
 
 

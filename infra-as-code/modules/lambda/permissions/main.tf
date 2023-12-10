@@ -22,7 +22,6 @@ data "aws_iam_policy_document" "lambda_role" {
 }
 
 resource "aws_iam_role_policy" "iam_for_lambda_ecs_policy" {
-  count  = var.CREATE_ECS_PERMISSIONS == true ? 1 : 0
   name   = var.RESOURCE_NAME
   role   = aws_iam_role.iam_for_lambda.id
   policy = data.aws_iam_policy_document.lambda_role_ecs_policy.json

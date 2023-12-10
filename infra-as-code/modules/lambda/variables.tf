@@ -115,18 +115,3 @@ variable "SECRET_MANAGER_ARN" {
   type    = string
   default = ""
 }
-
-variable "CREATE_ECS_PERMISSIONS" {
-  type    = bool
-  default = false
-}
-
-variable "CREATE_EC2_PERMISSIONS" {
-  type    = bool
-  default = false
-}
-
-variable "CREATE_EKS_LAMBDA_PERMISSIONS" {
-  type    = bool
-  default = false
-}
