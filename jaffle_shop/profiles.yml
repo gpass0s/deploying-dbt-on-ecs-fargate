@@ -1,5 +1,5 @@
 jaffle_shop:
-  target: dev
+  target: snowflake
   outputs:
     snowflake:
       type: snowflake
