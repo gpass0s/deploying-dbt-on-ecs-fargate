@@ -1,6 +1,5 @@
 /* This project creates a VPC with two subnets, one public and one private. It also creates all necessary
-resources to guarantee connectivity to the internet from the public subnet. Moreover, this project
-establishes a VPC peering connection to Quext's main VPC.
+resources to guarantee connectivity to the internet from the public subnet.
 */
 
 # Instantiate a single VPC using foundational models
